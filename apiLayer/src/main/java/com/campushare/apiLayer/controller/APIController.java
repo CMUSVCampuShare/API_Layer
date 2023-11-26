@@ -1,7 +1,10 @@
 package com.campushare.apiLayer.controller;
 
+import com.campushare.apiLayer.model.Post;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.campushare.apiLayer.model.LoginRequest;
 import com.campushare.apiLayer.model.User;
 import com.campushare.apiLayer.service.APIService;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 @RestController
 public class APIController {
@@ -56,5 +62,22 @@ public class APIController {
             return ResponseEntity.ok().headers(responseHeaders).body(null);
         }
 
+    }
+
+    @GetMapping("/posts/active")
+    public ResponseEntity<List<Post>> getActivePostsFromPostService() {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts/active";
+
+        ResponseEntity<List<Post>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Post>>() {}
+        );
+
+        List<Post> posts = response.getBody();
+        System.out.println(posts);
+        return response;
     }
 }
