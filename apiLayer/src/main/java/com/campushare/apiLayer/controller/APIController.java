@@ -3,8 +3,10 @@ package com.campushare.apiLayer.controller;
 import com.campushare.apiLayer.model.Post;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +17,7 @@ import com.campushare.apiLayer.model.LoginRequest;
 import com.campushare.apiLayer.model.User;
 import com.campushare.apiLayer.service.APIService;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 
@@ -24,10 +27,10 @@ public class APIController {
     @Autowired
     private APIService service;
 
-    @GetMapping("/users/{userId}")
+    /*  @GetMapping("/users/{userId}")
     public User getUserByUserId(@PathVariable String userId) {
         return service.getUserByUserId(userId);
-    }
+    } */
 
     // @GetMapping("/users/{username}")
     // public User getUserByUserName(@PathVariable String username) {
@@ -73,11 +76,88 @@ public class APIController {
                 url,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<Post>>() {}
-        );
+                new ParameterizedTypeReference<List<Post>>() {
+                });
 
         List<Post> posts = response.getBody();
         System.out.println(posts);
         return response;
     }
+
+@GetMapping("/users/{userId}")
+public ResponseEntity<User> getUserByIdFromUserService(@PathVariable String userId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = UriComponentsBuilder.fromUriString("http://localhost:8081/users/{userId}")
+                .buildAndExpand(userId)
+                .toUriString();
+                System.out.println(url);
+
+        ResponseEntity<User> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<User>() {});
+
+        User user = response.getBody();
+        System.out.println(user);
+        return response;
+    }
+
+     @GetMapping("/users")
+     public ResponseEntity<List<User>> getAllUsersFromUserService() {
+         RestTemplate restTemplate = new RestTemplate();
+         String url = "http://localhost:8081/users";
+
+         ResponseEntity<List<User>> response = restTemplate.exchange(
+                 url,
+                 HttpMethod.GET,
+                 null,
+                 new ParameterizedTypeReference<List<User>>() {
+                 });
+
+         List<User> user = response.getBody();
+         System.out.println(user);
+         return response;
+     }
+
+     @PostMapping("/users")
+     public ResponseEntity<User> createuser(@RequestBody User user) {
+         RestTemplate restTemplate = new RestTemplate();
+         String url = "http://localhost:8081/users";
+
+         HttpEntity<User> request = new HttpEntity<User>(new User(
+                 user.getUserId(),
+                 user.getUsername(),
+                 user.getPassword(),
+                 user.getRole()));
+
+         ResponseEntity<User> response = restTemplate.exchange(
+                 url,
+                 HttpMethod.POST,
+                 request,
+                 new ParameterizedTypeReference<User>() {
+                 });
+
+         User createdUser = response.getBody();
+         System.out.println(createdUser);
+         return response;
+     }
+
+ /*    @GetMapping("/users/{username}")
+    public ResponseEntity<List<User>> getUserByUsernameFromUserService() {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8081/users/{username}";
+
+        ResponseEntity<List<User>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<User>>() {
+                });
+
+        List<User> user = response.getBody();
+        System.out.println(user);
+        return response;
+    } */
+    
 }
