@@ -1,20 +1,21 @@
 package com.campushare.apiLayer.controller;
 
 import com.campushare.apiLayer.model.Post;
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.campushare.apiLayer.model.LoginRequest;
 import com.campushare.apiLayer.model.User;
-import com.campushare.apiLayer.service.APIService;
+//import com.campushare.apiLayer.service.APIService;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,48 +23,89 @@ import java.util.Map;
 @RestController
 public class APIController {
 
-    @Autowired
-    private APIService service;
-
-    /*  @GetMapping("/users/{userId}")
-    public User getUserByUserId(@PathVariable String userId) {
-        return service.getUserByUserId(userId);
-    } */
-
     // @GetMapping("/users/{username}")
     // public User getUserByUserName(@PathVariable String username) {
     // return service.getUserByUsername(username);
     // }
 
-    @PostMapping("/login")
+   /*  @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        // Implement validation and error handling as needed
-        System.out.println(loginRequest);
+ */
+       /*  logic:
+        1. receive username and password as login request from client
+        2. find user by username via user service - 8081/users/username
+        3. verify password against password sent in request
+        4. create a jwt for the user to remain logged in and authenticated
+        
+ */
 
+        // Implement validation and error handling as needed
+      /*   System.out.println(loginRequest);
+      
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
-
-        User authenticatedUser = service.authenticateUser(username, password);
-        System.out.println(authenticatedUser);
-
+      
+        //User authenticatedUser = service.authenticateUser(username, password);
+        ResponseEntity<User> fetchuser = getUserByUsernameFromUserService(username);
         HttpHeaders responseHeaders = new HttpHeaders();
-
-        if (authenticatedUser != null) {
-            // Generate a JWT token
-            // String token = Jwts.builder()
-            // .setSubject(authenticatedUser.getUserId()) // from username changed to
-            // authenticatedUser.getUserId()
-            // // because we need userId for other services
-            // .signWith(SignatureAlgorithm.HS512, "yourSecretKey") // replace with your
-            // secret key
-            // .compact();
-            return ResponseEntity.ok().headers(responseHeaders).body(authenticatedUser.getUserId());
+      
+        if(fetchuser.getBody().getPassword() == password) {
+      
+         
+            return ResponseEntity.ok().headers(responseHeaders).body(fetchuser.getBody().getUserId());
         } else {
             // Handle authentication failure
             return ResponseEntity.ok().headers(responseHeaders).body(null);
         }
+      
+      } */
+    
 
-    }
+      @PostMapping("/login")
+      public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+          // Implement validation and error handling as needed
+
+          String username = loginRequest.getUsername();
+          String password = loginRequest.getPassword();
+
+          ResponseEntity<User> fetchUserResponse = getUserByUsernameFromUserService(username);
+
+          if (fetchUserResponse.getStatusCode().is2xxSuccessful()) {
+              User fetchedUser = fetchUserResponse.getBody();
+
+              // Verify password
+              if (fetchedUser != null && fetchedUser.getPassword().equals(password)) {
+                  // Create JWT
+                  String jwt = createJwt(fetchedUser.getUserId());
+
+                  HttpHeaders responseHeaders = new HttpHeaders();
+                  responseHeaders.add("Authorization", "Bearer " + jwt);
+
+                  return ResponseEntity.ok().headers(responseHeaders).body(fetchedUser.getUserId());
+              }
+          }
+
+          // Handle authentication failure
+          return ResponseEntity.status(401).body("Authentication failed");
+      }
+
+
+      private String createJwt(String userId) {
+          // You need to provide your own secret key for signing the JWT
+          String secretKey = "yourSecretKey";
+
+          // Set the expiration time of the token (e.g., 1 hour from now)
+          long expirationTimeMillis = System.currentTimeMillis() + 3600000; // 1 hour
+          Date expirationDate = new Date(expirationTimeMillis);
+
+          // Build the JWT
+          return Jwts.builder()
+                  .setSubject(userId)
+                  .setExpiration(expirationDate)
+                  .signWith(SignatureAlgorithm.HS512, secretKey)
+                  .compact();
+      }
+
 
     @PostMapping("/posts")
     public ResponseEntity<Post> createPost(@RequestBody Post post) {
@@ -172,22 +214,25 @@ public ResponseEntity<User> getUserByIdFromUserService(@PathVariable String user
          return response;
      }
 
- /*    @GetMapping("/users/{username}")
-    public ResponseEntity<List<User>> getUserByUsernameFromUserService() {
+ @GetMapping("/users/findBy/{username}")
+public ResponseEntity<User> getUserByUsernameFromUserService(@PathVariable String username) {
         RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8081/users/{username}";
+        String url = UriComponentsBuilder.fromUriString("http://localhost:8081/users/findBy/{username}")
+                .buildAndExpand(username)
+                .toUriString();
+                System.out.println(url);
 
-        ResponseEntity<List<User>> response = restTemplate.exchange(
+        ResponseEntity<User> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
                 null,
-                new ParameterizedTypeReference<List<User>>() {
-                });
+                new ParameterizedTypeReference<User>() {});
 
-        List<User> user = response.getBody();
+        User user = response.getBody();
         System.out.println(user);
         return response;
-    } */
+    }
+
     
     @GetMapping("/posts/{postId}")
     public ResponseEntity<Post> getPost(@PathVariable String postId) {

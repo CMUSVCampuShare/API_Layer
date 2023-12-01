@@ -1,4 +1,4 @@
-package com.campushare.apiLayer.service;
+/* package com.campushare.apiLayer.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,3 +24,4 @@ public class APIService {
         return repository.findByUsernameAndPassword(username, password);
     }
 }
+ */
