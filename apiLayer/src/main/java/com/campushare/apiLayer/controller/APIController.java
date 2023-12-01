@@ -1,5 +1,6 @@
 package com.campushare.apiLayer.controller;
 
+import com.campushare.apiLayer.model.Comment;
 import com.campushare.apiLayer.model.Post;
 //import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -280,8 +281,8 @@ public ResponseEntity<User> getUserByUsernameFromUserService(@PathVariable Strin
                 uriVariables
         );
 
-        Post createdPost = response.getBody();
-        System.out.println(createdPost);
+        Post editedPost = response.getBody();
+        System.out.println(editedPost);
         return response;
     }
 
@@ -300,6 +301,52 @@ public ResponseEntity<User> getUserByUsernameFromUserService(@PathVariable Strin
                 uriVariables
         );
 
+        return response;
+    }
+
+    @PostMapping("/posts/{postId}/comments")
+    public ResponseEntity<Comment>  createComment(@PathVariable String postId, @RequestBody Comment comment) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts/{postId}/comments";
+        Map<String, String> uriVariables = new HashMap<>();
+        uriVariables.put("postId", postId);
+
+        HttpEntity<Comment> request =
+                new HttpEntity<Comment>(new Comment(
+                        comment.getCommentId(),
+                        comment.getPostId(),
+                        comment.getComment()));
+
+        ResponseEntity<Comment> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<Comment>() {},
+                uriVariables
+        );
+
+        Comment createdComment = response.getBody();
+        System.out.println(createdComment);
+        return response;
+    }
+
+    @GetMapping("/posts/{postId}/comments")
+    public ResponseEntity<List<Comment>> getAllCommentsByPostId(@PathVariable String postId){
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts/{postId}/comments";
+        Map<String, String> uriVariables = new HashMap<>();
+        uriVariables.put("postId", postId);
+
+        ResponseEntity<List<Comment>> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<List<Comment>>() {},
+                uriVariables
+        );
+
+        List<Comment> comments = response.getBody();
+        System.out.println(comments);
         return response;
     }
 }
