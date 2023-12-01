@@ -8,18 +8,16 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import com.campushare.apiLayer.model.LoginRequest;
 import com.campushare.apiLayer.model.User;
 import com.campushare.apiLayer.service.APIService;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 public class APIController {
@@ -65,6 +63,37 @@ public class APIController {
             return ResponseEntity.ok().headers(responseHeaders).body(null);
         }
 
+    }
+
+    @PostMapping("/posts")
+    public ResponseEntity<Post> createPost(@RequestBody Post post) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts";
+
+        HttpEntity<Post> request =
+                new HttpEntity<Post>(new Post(
+                        post.getPostId(),
+                        post.getUserId(),
+                        post.getTitle(),
+                        post.getFrom(),
+                        post.getTo(),
+                        post.getDetails(),
+                        post.getType(),
+                        post.getNoOfSeats(),
+                        post.getStatus(),
+                        post.getTimestamp(),
+                        post.getComments()));
+
+        ResponseEntity<Post> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                new ParameterizedTypeReference<Post>() {}
+        );
+
+        Post createdPost = response.getBody();
+        System.out.println(createdPost);
+        return response;
     }
 
     @GetMapping("/posts/active")
@@ -160,4 +189,72 @@ public ResponseEntity<User> getUserByIdFromUserService(@PathVariable String user
         return response;
     } */
     
+    @GetMapping("/posts/{postId}")
+    public ResponseEntity<Post> getPost(@PathVariable String postId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts/{postId}";
+
+        ResponseEntity<Post> response = restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                new ParameterizedTypeReference<Post>() {}
+        );
+
+        Post post = response.getBody();
+        System.out.println(post);
+        return response;
+    }
+
+    @PutMapping("/posts/{postId}")
+    public ResponseEntity<Post> editPost(@PathVariable String postId, @RequestBody Post post) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts/{postId}";
+        Map<String, String> uriVariables = new HashMap<>();
+        uriVariables.put("postId", postId);
+
+        HttpEntity<Post> request =
+                new HttpEntity<Post>(new Post(
+                        post.getPostId(),
+                        post.getUserId(),
+                        post.getTitle(),
+                        post.getFrom(),
+                        post.getTo(),
+                        post.getDetails(),
+                        post.getType(),
+                        post.getNoOfSeats(),
+                        post.getStatus(),
+                        post.getTimestamp(),
+                        post.getComments()));
+
+        ResponseEntity<Post> response = restTemplate.exchange(
+                url,
+                HttpMethod.PUT,
+                request,
+                new ParameterizedTypeReference<Post>() {},
+                uriVariables
+        );
+
+        Post createdPost = response.getBody();
+        System.out.println(createdPost);
+        return response;
+    }
+
+    @DeleteMapping("/posts/{postId}")
+    public ResponseEntity<Post> deletePost(@PathVariable String postId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8082/posts/{postId}";
+        Map<String, String> uriVariables = new HashMap<>();
+        uriVariables.put("postId", postId);
+
+        ResponseEntity<Post> response = restTemplate.exchange(
+                url,
+                HttpMethod.DELETE,
+                null,
+                new ParameterizedTypeReference<Post>() {},
+                uriVariables
+        );
+
+        return response;
+    }
 }
