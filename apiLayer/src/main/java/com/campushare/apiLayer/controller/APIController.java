@@ -10,10 +10,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @RestController
 public class APIController {
@@ -178,6 +176,25 @@ public class APIController {
         ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
 
         return ResponseEntity.ok(responseEntity.getBody());
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<List<NotificationRecord>> getNotifications(@RequestParam String userID) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8088/notifications?userID=" + userID;
+        ResponseEntity<NotificationRecord[]> responseEntity = restTemplate.getForEntity(url, NotificationRecord[].class);
+
+        List<NotificationRecord> notifications = Arrays.asList(responseEntity.getBody());
+
+        return ResponseEntity.ok(notifications);
+    }
+
+    @DeleteMapping("/notifications/{notificationId}")
+    public ResponseEntity deleteNotificationRecord(@PathVariable String notificationId) {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8088/notifications/" + notificationId;
+        restTemplate.delete(url);
+        return ResponseEntity.ok("Notification record successfully deleted.");
     }
 
 @GetMapping("/users/{userId}")
