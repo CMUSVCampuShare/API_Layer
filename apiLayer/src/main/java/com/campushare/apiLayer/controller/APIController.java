@@ -1,16 +1,10 @@
 package com.campushare.apiLayer.controller;
 
-import com.campushare.apiLayer.model.Comment;
-import com.campushare.apiLayer.model.Post;
+import com.campushare.apiLayer.model.*;
 //import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import com.campushare.apiLayer.model.LoginRequest;
-import com.campushare.apiLayer.model.User;
 //import com.campushare.apiLayer.service.APIService;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -154,6 +148,36 @@ public class APIController {
         List<Post> posts = response.getBody();
         System.out.println(posts);
         return response;
+    }
+
+    @PostMapping("/join")
+    public ResponseEntity requestToJoin(@RequestParam String post, @RequestBody JoinRequest joinRequest){
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8086/join";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<JoinRequest> requestEntity = new HttpEntity<>(joinRequest, headers);
+
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
+
+        return ResponseEntity.ok(responseEntity.getBody());
+    }
+
+    @PostMapping("/request-food")
+    public ResponseEntity requestFood(@RequestParam String post, @RequestBody FoodRequest foodRequest){
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:8086/request-food";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<FoodRequest> requestEntity = new HttpEntity<>(foodRequest, headers);
+
+        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
+
+        return ResponseEntity.ok(responseEntity.getBody());
     }
 
 @GetMapping("/users/{userId}")
