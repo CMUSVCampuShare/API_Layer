@@ -11,15 +11,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.campushare.apiLayer.model.LoginRequest;
 import com.campushare.apiLayer.model.User;
-//import com.campushare.apiLayer.service.APIService;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.mindrot.jbcrypt.BCrypt;
+
 
 @RestController
 public class APIController {
@@ -75,13 +78,13 @@ public class APIController {
               User fetchedUser = fetchUserResponse.getBody();
 
               // Verify password
-              if (fetchedUser != null && fetchedUser.getPassword().equals(password)) {
+              if (fetchedUser != null && BCrypt.checkpw(password, fetchedUser.getPassword())) {
                   // Create JWT
                   String jwt = createJwt(fetchedUser.getUserId());
 
                   HttpHeaders responseHeaders = new HttpHeaders();
                   responseHeaders.add("Authorization", "Bearer " + jwt);
-
+                  //BCrypt.checkpw(plainPassword, hashedPassword);
                   return ResponseEntity.ok().headers(responseHeaders).body(fetchedUser.getUserId());
               }
           }
@@ -93,7 +96,7 @@ public class APIController {
 
       private String createJwt(String userId) {
           // You need to provide your own secret key for signing the JWT
-          String secretKey = "yourSecretKey";
+          Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
           // Set the expiration time of the token (e.g., 1 hour from now)
           long expirationTimeMillis = System.currentTimeMillis() + 3600000; // 1 hour
@@ -103,7 +106,7 @@ public class APIController {
           return Jwts.builder()
                   .setSubject(userId)
                   .setExpiration(expirationDate)
-                  .signWith(SignatureAlgorithm.HS512, secretKey)
+                  .signWith(secretKey, SignatureAlgorithm.HS512)
                   .compact();
       }
 

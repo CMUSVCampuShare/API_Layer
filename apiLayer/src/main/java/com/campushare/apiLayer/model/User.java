@@ -21,10 +21,11 @@ public class User {
     private Role role;
 
  /*    private String email;
-    private Schedule schedule;
-    private Address address; 
-    private String account;
-    private Integer noOfSeats;
-    private String licenseNo; */
+ private String entryTime;
+private String exitTime;
+ private String address; 
+ private String account;
+ private Integer noOfSeats;
+ private String licenseNo; */
 
 }
