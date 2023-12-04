@@ -434,7 +434,7 @@ public class APIController {
     // ***** Recommendation Service *****
 
     @GetMapping("/recommendations/{userId}/top-posts")
-    public ResponseEntity<List<RecommendationPost>> getTopPosts(@PathVariable String userId, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<RecommendationPost>> getRecommendations(@PathVariable String userId, @RequestHeader("Authorization") String token) {
         if (isValidToken(token)) {
             RestTemplate restTemplate = new RestTemplate();
             String recommendationServiceUrl = "http://localhost:8083/recommendations/{userId}/top-posts";
