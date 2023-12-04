@@ -7,8 +7,6 @@ import io.jsonwebtoken.JwtException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import com.campushare.apiLayer.model.LoginRequest;
-import com.campushare.apiLayer.model.User;
 //import com.campushare.apiLayer.service.APIService;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -16,10 +14,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 import org.mindrot.jbcrypt.BCrypt;
 
 
@@ -68,7 +63,7 @@ public class APIController {
     private Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
       @PostMapping("/login")
-      public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
+      public ResponseEntity<Map<String, String>> login(@RequestBody LoginRequest loginRequest) {
           // Implement validation and error handling as needed
 
           String username = loginRequest.getUsername();
@@ -90,12 +85,23 @@ public class APIController {
                   responseHeaders.add("Authorization", "Bearer " + jwt);
                   System.out.println(responseHeaders.get("Authorization"));
                   //BCrypt.checkpw(plainPassword, hashedPassword);
-                  return ResponseEntity.ok().headers(responseHeaders).body(fetchedUser.getUserId());
+                   // Include the JWT in the response body
+            Map<String, String> responseBody = new HashMap<>();
+            responseBody.put("jwt", jwt);
+            responseBody.put("userId", fetchedUser.getUserId());
+
+            return ResponseEntity.ok().headers(responseHeaders).body(responseBody);
+        }
+    }
+
+    // Handle authentication failure
+    return ResponseEntity.status(401).body(null);
+                  /* return ResponseEntity.ok().headers(responseHeaders).body(fetchedUser.getUserId());
               }
           }
 
           // Handle authentication failure
-          return ResponseEntity.status(401).body("Authentication failed");
+          return ResponseEntity.status(401).body("Authentication failed"); */
       }
 
 
