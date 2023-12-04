@@ -471,7 +471,6 @@ public class APIController {
 
     }
 
-
     // ***** Recommendation Service *****
 
     // ***** Ride Lifecycle Management and Payment Service *****
