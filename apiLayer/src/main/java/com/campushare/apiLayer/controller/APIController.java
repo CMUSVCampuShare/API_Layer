@@ -433,6 +433,29 @@ public class APIController {
 
     // ***** Recommendation Service *****
 
+    @GetMapping("/recommendations/{userId}/top-posts")
+    public ResponseEntity<List<RecommendationPost>> getTopPosts(@PathVariable String userId, @RequestHeader("Authorization") String token) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String recommendationServiceUrl = "http://localhost:8083/recommendations/{userId}/top-posts";
+
+            ResponseEntity<List<RecommendationPost>> response = restTemplate.exchange(
+                    recommendationServiceUrl,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<RecommendationPost>>() {},
+                    userId
+            );
+
+            System.out.println(response.getBody());
+            return response;
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+    }
+
+
     // ***** Recommendation Service *****
 
     // ***** Ride Lifecycle Management and Payment Service *****
