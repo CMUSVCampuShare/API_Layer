@@ -95,52 +95,68 @@ public class APIController {
     // ***** Join, Notification, and Geolocation Service *****
 
     @PostMapping("/join")
-    public ResponseEntity requestToJoin(@RequestParam String post, @RequestBody JoinRequest joinRequest) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8086/join";
+    public ResponseEntity requestToJoin(@RequestHeader("Authorization") String token, @RequestParam String post, @RequestBody JoinRequest joinRequest) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8086/join";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<JoinRequest> requestEntity = new HttpEntity<>(joinRequest, headers);
+            HttpEntity<JoinRequest> requestEntity = new HttpEntity<>(joinRequest, headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
 
-        return ResponseEntity.ok(responseEntity.getBody());
+            return ResponseEntity.ok(responseEntity.getBody());
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     @PostMapping("/request-food")
-    public ResponseEntity requestFood(@RequestParam String post, @RequestBody FoodRequest foodRequest) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8086/request-food";
+    public ResponseEntity requestFood(@RequestHeader("Authorization") String token, @RequestParam String post, @RequestBody FoodRequest foodRequest) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8086/request-food";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
-        HttpEntity<FoodRequest> requestEntity = new HttpEntity<>(foodRequest, headers);
+            HttpEntity<FoodRequest> requestEntity = new HttpEntity<>(foodRequest, headers);
 
-        ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.postForEntity(url + "?post=" + post, requestEntity, String.class);
 
-        return ResponseEntity.ok(responseEntity.getBody());
+            return ResponseEntity.ok(responseEntity.getBody());
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     @GetMapping("/notifications")
-    public ResponseEntity<List<NotificationRecord>> getNotifications(@RequestParam String userID) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8088/notifications?userID=" + userID;
-        ResponseEntity<NotificationRecord[]> responseEntity = restTemplate.getForEntity(url, NotificationRecord[].class);
+    public ResponseEntity<List<NotificationRecord>> getNotifications(@RequestHeader("Authorization") String token, @RequestParam String userID) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8088/notifications?userID=" + userID;
+            ResponseEntity<NotificationRecord[]> responseEntity = restTemplate.getForEntity(url, NotificationRecord[].class);
 
-        List<NotificationRecord> notifications = Arrays.asList(responseEntity.getBody());
+            List<NotificationRecord> notifications = Arrays.asList(responseEntity.getBody());
 
-        return ResponseEntity.ok(notifications);
+            return ResponseEntity.ok(notifications);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     @DeleteMapping("/notifications/{notificationId}")
-    public ResponseEntity deleteNotificationRecord(@PathVariable String notificationId) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8088/notifications/" + notificationId;
-        restTemplate.delete(url);
-        return ResponseEntity.ok("Notification record successfully deleted.");
+    public ResponseEntity deleteNotificationRecord(@RequestHeader("Authorization") String token, @PathVariable String notificationId) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8088/notifications/" + notificationId;
+            restTemplate.delete(url);
+            return ResponseEntity.ok("Notification record successfully deleted.");
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     // ***** Join, Notification, and Geolocation Service *****
