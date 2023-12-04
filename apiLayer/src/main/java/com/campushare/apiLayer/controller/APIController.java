@@ -2,6 +2,8 @@ package com.campushare.apiLayer.controller;
 
 import com.campushare.apiLayer.model.*;
 //import org.springframework.beans.factory.annotation.Autowired;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -62,7 +64,8 @@ public class APIController {
         }
       
       } */
-    
+
+    private Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
       @PostMapping("/login")
       public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
@@ -70,6 +73,8 @@ public class APIController {
 
           String username = loginRequest.getUsername();
           String password = loginRequest.getPassword();
+          String predefinedSalt = "$2a$10$abcdefghijklmnopqrstuu";
+          String hashedPassword = BCrypt.hashpw(password, predefinedSalt);
 
           ResponseEntity<User> fetchUserResponse = getUserByUsernameFromUserService(username);
 
@@ -77,12 +82,13 @@ public class APIController {
               User fetchedUser = fetchUserResponse.getBody();
 
               // Verify password
-              if (fetchedUser != null && BCrypt.checkpw(password, fetchedUser.getPassword())) {
+              if (fetchedUser != null && BCrypt.checkpw(password, hashedPassword)) {
                   // Create JWT
                   String jwt = createJwt(fetchedUser.getUserId());
 
                   HttpHeaders responseHeaders = new HttpHeaders();
                   responseHeaders.add("Authorization", "Bearer " + jwt);
+                  System.out.println(responseHeaders.get("Authorization"));
                   //BCrypt.checkpw(plainPassword, hashedPassword);
                   return ResponseEntity.ok().headers(responseHeaders).body(fetchedUser.getUserId());
               }
@@ -95,7 +101,6 @@ public class APIController {
 
       private String createJwt(String userId) {
           // You need to provide your own secret key for signing the JWT
-          Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
           // Set the expiration time of the token (e.g., 1 hour from now)
           long expirationTimeMillis = System.currentTimeMillis() + 3600000; // 1 hour
@@ -108,6 +113,29 @@ public class APIController {
                   .signWith(secretKey, SignatureAlgorithm.HS512)
                   .compact();
       }
+
+    public boolean isValidToken(String token) {
+        try {
+            System.out.println("Token: " + token);
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(secretKey)
+                    .build()
+                    .parseClaimsJws(removeBearerPrefix(token))
+                    .getBody();
+            System.out.println("Claims: " + claims);
+            System.out.println("Expiry: " + claims.getExpiration());
+            return !claims.getExpiration().before(new Date());
+        } catch (JwtException | IllegalArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String removeBearerPrefix(String token) {
+        String string =  token.trim().replaceFirst("Bearer ", "");
+        System.out.println("String " + string);
+        return string;
+    }
 
 
     @PostMapping("/posts")
@@ -142,20 +170,24 @@ public class APIController {
     }
 
     @GetMapping("/posts/active")
-    public ResponseEntity<List<Post>> getActivePostsFromPostService() {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "http://localhost:8082/posts/active";
+    public ResponseEntity<List<Post>> getActivePostsFromPostService(@RequestHeader("Authorization") String token) {
+          if(isValidToken(token)) {
+              RestTemplate restTemplate = new RestTemplate();
+              String url = "http://localhost:8082/posts/active";
 
-        ResponseEntity<List<Post>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<Post>>() {
-                });
+              ResponseEntity<List<Post>> response = restTemplate.exchange(
+                      url,
+                      HttpMethod.GET,
+                      null,
+                      new ParameterizedTypeReference<List<Post>>() {
+                      });
 
-        List<Post> posts = response.getBody();
-        System.out.println(posts);
-        return response;
+              List<Post> posts = response.getBody();
+              System.out.println(posts);
+              return response;
+          } else {
+              return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+          }
     }
 
     @PostMapping("/join")
