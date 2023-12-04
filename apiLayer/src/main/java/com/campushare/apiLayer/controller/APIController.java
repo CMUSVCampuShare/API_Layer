@@ -82,7 +82,7 @@ public class APIController {
               User fetchedUser = fetchUserResponse.getBody();
 
               // Verify password
-              if (fetchedUser != null && BCrypt.checkpw(password, hashedPassword)) {
+              if (fetchedUser != null && hashedPassword.equals(fetchedUser.getPassword())) {
                   // Create JWT
                   String jwt = createJwt(fetchedUser.getUserId());
 
