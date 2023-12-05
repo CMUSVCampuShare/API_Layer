@@ -8,11 +8,14 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 //import com.campushare.apiLayer.service.APIService;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.Key;
 
@@ -23,6 +26,8 @@ import java.util.*;
 
 @RestController
 public class APIController {
+
+    private static final Logger logger = LoggerFactory.getLogger(APIController.class);
 
     private Key secretKey = Keys.secretKeyFor(SignatureAlgorithm.HS512);
 
@@ -459,7 +464,8 @@ public class APIController {
                     recommendationServiceUrl,
                     HttpMethod.GET,
                     null,
-                    new ParameterizedTypeReference<List<RecommendationPost>>() {},
+                    new ParameterizedTypeReference<List<RecommendationPost>>() {
+                    },
                     userId
             );
 
@@ -473,7 +479,135 @@ public class APIController {
 
     // ***** Recommendation Service *****
 
-    // ***** Ride Lifecycle Management and Payment Service *****
+    // ***** Ride Lifecycle Management Service *****
+    @PostMapping("/api/rides/approveJoinRequest")
+    public ResponseEntity<String> approveJoinRequest(@RequestParam String rideId, @RequestParam String passengerId, @RequestHeader("Authorization") String token) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8084/api/rides/approveJoinRequest";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", token);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                    .queryParam("rideId", rideId)
+                    .queryParam("passengerId", passengerId);
 
-    // ***** Ride Lifecycle Management and Payment Service *****
+            HttpEntity<?> request = new HttpEntity<>(headers);
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(
+                        builder.toUriString(),
+                        HttpMethod.POST,
+                        request,
+                        String.class
+                );
+                System.out.println(response.getBody());
+                return response;
+            } catch (RestClientException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
+
+
+    @PostMapping("/api/rides/rejectJoinRequest")
+    public ResponseEntity<String> rejectJoinRequest(@RequestParam String rideId, @RequestParam String rideTitle, @RequestParam String passengerId, @RequestHeader("Authorization") String token) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8084/api/rides/rejectJoinRequest";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", token);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                    .queryParam("rideId", rideId)
+                    .queryParam("rideTitle", rideTitle)
+                    .queryParam("passengerId", passengerId);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(
+                        builder.toUriString(),
+                        HttpMethod.POST,
+                        request,
+                        String.class
+                );
+                System.out.println(response.getBody());
+                return response;
+            } catch (RestClientException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    // ***** Ride Lifecycle Management Service *****
+
+    // ***** Payment Service *****
+
+    @PostMapping("/api/payments/getAccessTokenAndCreateOrder")
+    public ResponseEntity<String> getAccessTokenAndCreateOrder(@RequestParam String authorizationCode, @RequestParam String driverId, @RequestParam String rideId, @RequestParam String passengerId, @RequestHeader("Authorization") String token) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8085/api/payments/getAccessTokenAndCreateOrder";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", token);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                    .queryParam("authorizationCode", authorizationCode)
+                    .queryParam("driverId", driverId)
+                    .queryParam("rideId", rideId)
+                    .queryParam("passengerId", passengerId);
+
+            HttpEntity<?> request = new HttpEntity<>(headers);
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(
+                        builder.toUriString(),
+                        HttpMethod.POST,
+                        request,
+                        String.class
+                );
+                System.out.println(response.getBody());
+                return response;
+            } catch (RestClientException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
+            }
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+
+    @PostMapping("/api/payments/authorizeOrder")
+    public ResponseEntity<String> authorizeOrder(@RequestParam String rideId, @RequestParam String passengerId, @RequestHeader("Authorization") String token) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8085/api/payments/authorizeOrder";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Authorization", token);
+
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
+                    .queryParam("rideId", rideId)
+                    .queryParam("passengerId", passengerId);
+            HttpEntity<?> request = new HttpEntity<>(headers);
+            try {
+                ResponseEntity<String> response = restTemplate.exchange(
+                        builder.toUriString(),
+                        HttpMethod.POST,
+                        request,
+                        String.class
+                );
+                System.out.println(response.getBody());
+                return response;
+            } catch (RestClientException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error processing request");
+            }
+
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
+    // ***** Payment Service *****
 }
