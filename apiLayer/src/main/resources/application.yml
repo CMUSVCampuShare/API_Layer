@@ -1,0 +1,8 @@
+server:
+  port: 8080
+spring:
+  data:
+    mongodb:
+      uri: mongodb+srv://campushareAdmin:campusharePassword@clustercampushare.qhbomhf.mongodb.net/?retryWrites=true&w=majority
+      database: User
+    
