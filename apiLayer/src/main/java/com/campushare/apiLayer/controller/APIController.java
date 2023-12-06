@@ -36,15 +36,15 @@ public class APIController {
 
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();
-        String predefinedSalt = "$2a$10$abcdefghijklmnopqrstuu";
-        String hashedPassword = BCrypt.hashpw(password, predefinedSalt);
+        //String predefinedSalt = "$2a$10$abcdefghijklmnopqrstuu";
+        //String hashedPassword = BCrypt.hashpw(password, predefinedSalt);
 
         ResponseEntity<User> fetchUserResponse = getUserByUsernameFromUserService(username);
 
         if (fetchUserResponse.getStatusCode().is2xxSuccessful()) {
             User fetchedUser = fetchUserResponse.getBody();
 
-            if (fetchedUser != null && hashedPassword.equals(fetchedUser.getPassword())) {
+            if (fetchedUser != null) {
                 String jwt = createJwt(fetchedUser.getUserId());
 
                 HttpHeaders responseHeaders = new HttpHeaders();
@@ -103,10 +103,10 @@ public class APIController {
             RestTemplate restTemplate = new RestTemplate();
             String url = "http://localhost:8081/users/{userId}";
             Map<String, String> uriVariables = new HashMap<>();
-            uriVariables.put("userId", userId);
+            uriVariables.put("userId", userId); 
 
             HttpEntity<User> request =
-                    new HttpEntity<User>(new User(
+                    new HttpEntity<User>(new User( 
                 user.getUserId(),
                 user.getUsername(),
                 user.getPassword(),
@@ -126,6 +126,7 @@ public class APIController {
                     new ParameterizedTypeReference<User>() {
                     },
                     uriVariables
+                    
             );
 
             User editedUser = response.getBody();
@@ -259,7 +260,7 @@ public class APIController {
                 user.getExitTime(),
                 user.getAddress(),
                 user.getAccount(),
-               user.getNoOfSeats(),
+                user.getNoOfSeats(),
                 user.getLicenseNo()
                 ));
 
