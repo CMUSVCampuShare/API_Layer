@@ -19,13 +19,12 @@ public class User {
     private String username;
     private String password;
     private Role role;
-
- /*    private String email;
+    private String email;
  private String entryTime;
 private String exitTime;
  private String address; 
  private String account;
  private Integer noOfSeats;
- private String licenseNo; */
+ private String licenseNo; 
 
 }

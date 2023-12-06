@@ -97,6 +97,45 @@ public class APIController {
         return token.trim().replaceFirst("Bearer ", "");
     }
 
+     @PutMapping("/users/{userId}")
+    public ResponseEntity<User> editUser(@RequestHeader("Authorization") String token, @PathVariable String userId, @RequestBody User user) {
+        if (isValidToken(token)) {
+            RestTemplate restTemplate = new RestTemplate();
+            String url = "http://localhost:8081/users/{userId}";
+            Map<String, String> uriVariables = new HashMap<>();
+            uriVariables.put("userId", userId);
+
+            HttpEntity<User> request =
+                    new HttpEntity<User>(new User(
+                user.getUserId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getRole(),
+                user.getEmail(),
+                user.getEntryTime(),
+                user.getExitTime(),
+                user.getAddress(),
+                user.getAccount(),
+               user.getNoOfSeats(),
+                user.getLicenseNo()));
+
+            ResponseEntity<User> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.PUT,
+                    request,
+                    new ParameterizedTypeReference<User>() {
+                    },
+                    uriVariables
+            );
+
+            User editedUser = response.getBody();
+            System.out.println(editedUser);
+            return response;
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
+    }
+
     // ***** Join, Notification, and Geolocation Service *****
 
     @PostMapping("/join")
@@ -214,7 +253,15 @@ public class APIController {
                 user.getUserId(),
                 user.getUsername(),
                 user.getPassword(),
-                user.getRole()));
+                user.getRole(),
+                user.getEmail(),
+                user.getEntryTime(),
+                user.getExitTime(),
+                user.getAddress(),
+                user.getAccount(),
+               user.getNoOfSeats(),
+                user.getLicenseNo()
+                ));
 
         ResponseEntity<User> response = restTemplate.exchange(
                 url,
